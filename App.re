@@ -1,88 +1,58 @@
 open Revery;
+open Revery.Draw.Text;
 open Revery.Math;
 open Revery.UI;
 open Revery.UI.Components;
 
-let animatedText = {
-  let component = React.component("AnimatedText");
+type action =
+  | Drop(int);
 
-  (~children as _: list(React.syntheticElement), ~delay, ~textContent, ()) =>
-    component(hooks => {
-      let (translate, hooks) =
-        Hooks.animation(
-          Animated.floatValue(50.),
-          Animated.options(
-            ~toValue=0.,
-            ~duration=Seconds(0.5),
-            ~delay=Seconds(delay),
-            (),
-          ),
-          hooks,
-        );
+type state = {top: int};
 
-      let (opacityVal: float, hooks) =
-        Hooks.animation(
-          Animated.floatValue(0.),
-          Animated.options(
-            ~toValue=1.0,
-            ~duration=Seconds(1.),
-            ~delay=Seconds(delay),
-            (),
-          ),
-          hooks,
-        );
-
-      let textHeaderStyle =
-        Style.[
-          color(Colors.white),
-          fontFamily("Roboto-Regular.ttf"),
-          fontSize(24),
-          transform([Transform.TranslateY(translate)]),
-        ];
-
-      (
-        hooks,
-        <Opacity opacity=opacityVal>
-          <Padding padding=8>
-            <Text style=textHeaderStyle text=textContent />
-          </Padding>
-        </Opacity>,
-      );
-    });
+let reducer = (action, state) => {
+  switch (action) {
+  | Drop(velocity) => {top: state.top + velocity}
+  };
 };
 
-let simpleButton = {
-  let component = React.component("SimpleButton");
-
-  (~children as _: list(React.syntheticElement), ()) =>
+let fallingWord = {
+  let component = React.component("fallingWord");
+  (~children as _: list(React.syntheticElement), ~text, ~velocity, ~left, ()) =>
     component(hooks => {
-      let (count, setCount, hooks) = React.Hooks.state(0, hooks);
-      let increment = () => setCount(count + 1);
+      let (state, dispatch, slots) =
+        Hooks.reducer(~initialState={top: 0}, reducer, hooks);
 
-      let wrapperStyle =
-        Style.[
-          backgroundColor(Color.rgba(1., 1., 1., 0.1)),
-          border(~width=2, ~color=Colors.white),
-          margin(16),
-        ];
+      let hooks =
+        Hooks.effect(
+          OnMount,
+          () => {
+            let clear =
+              Tick.interval(_ => dispatch(Drop(velocity)), Seconds(0.05));
+            Some(clear);
+          },
+          slots,
+        );
 
-      let textHeaderStyle =
+      let family = "Roboto-Regular.ttf";
+      let size = 20;
+
+      let wordStyle =
         Style.[
           color(Colors.white),
-          fontFamily("Roboto-Regular.ttf"),
-          fontSize(20),
+          fontFamily(family),
+          fontSize(size),
+          flexDirection(`Row),
         ];
 
-      let textContent = "Click me: " ++ string_of_int(count);
+      let measurement = measure(~fontFamily=family, ~fontSize=size, text);
+
       (
         hooks,
-        <Clickable onClick=increment>
-          <View style=wrapperStyle>
-            <Padding padding=4>
-              <Text style=textHeaderStyle text=textContent />
-            </Padding>
-          </View>
-        </Clickable>,
+        <Positioned top={state.top} left>
+          <Container height=50 width={measurement.width + 10}>
+            <Text style=wordStyle text />
+          </Container>
+        </Positioned>,
       );
     });
 };
@@ -103,16 +73,9 @@ let init = app => {
       right(0),
     ];
 
-  let innerStyle = Style.[flexDirection(`Row), alignItems(`FlexEnd)];
-
   let element =
     <View style=containerStyle>
-      <View style=innerStyle>
-        <animatedText delay=0.0 textContent="Welcome" />
-        <animatedText delay=0.5 textContent="to" />
-        <animatedText delay=1. textContent="Revery" />
-      </View>
-      <simpleButton />
+      <fallingWord text="hey wassup dawg how ya doin" velocity=2 left=10 />
     </View>;
 
   let _ = UI.start(win, element);

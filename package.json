@@ -13,23 +13,32 @@
     "displayName": "Revery Example App",
     "mainExecutable": "App",
     "windows": {
-      "packages": ["zip"],
+      "packages": [
+        "zip"
+      ],
       "iconFile": "assets/icon.ico"
     },
     "darwin": {
-      "packages": ["tar", "dmg"],
+      "packages": [
+        "tar",
+        "dmg"
+      ],
       "iconFile": "assets/icon.icns"
     },
     "linux": {
-      "packages": ["tar", "appimage"]
+      "packages": [
+        "tar",
+        "appimage"
+      ]
     }
   },
   "dependencies": {
     "ocaml": "~4.7.0",
-    "revery": "0.27.0",
+    "revery": "*",
     "@opam/dune": "1.7.3"
   },
   "resolutions": {
+    "revery": "revery-ui/revery#a9ce184743a776cd719d6bde203a22e4b40b81fa",
     "@opam/cmdliner": "1.0.2",
     "@opam/js_of_ocaml": "github:ocsigen/js_of_ocaml:js_of_ocaml.opam#db257ce",
     "@opam/js_of_ocaml-compiler": "github:ocsigen/js_of_ocaml:js_of_ocaml-compiler.opam#db257ce",
@@ -40,9 +49,8 @@
     "@opam/merlin-extend": "0.4"
   },
   "scripts": {
-   "format": "bash -c \"refmt --in-place *.re\"",
-   "run": "esy x App"
-
+    "format": "bash -c \"refmt --in-place *.re\"",
+    "run": "esy x App"
   },
   "devDependencies": {
     "ocaml": "~4.7.0",
